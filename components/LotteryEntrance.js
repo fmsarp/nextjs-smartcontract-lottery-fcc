@@ -9,15 +9,16 @@ export default function LotteryEntrance() {
     const { chainId: chainIdHex, isWeb3Enabled } = useMoralis()
     const chainId = parseInt(chainIdHex)
     const raffleAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
+
     const [entranceFee, setEntranceFee] = useState("0")
 
-    // const {runContractFunction: enterRaffle} = useWeb3Contract({
-    //     abi: abi,//
-    //     contractAddress: raffleAddress, // specify the networkId
-    //     functionName: "enterRaffle",//
-    //     params: {},//
-    //     msgValue: ,//
-    // })
+    const { runContractFunction: enterRaffle } = useWeb3Contract({
+        abi: abi, //
+        contractAddress: raffleAddress, // specify the networkId
+        functionName: "enterRaffle", //
+        params: {}, //
+        msgValue: entranceFee, //
+    })
 
     const { runContractFunction: getEntranceFee } = useWeb3Contract({
         abi: abi, //
@@ -31,14 +32,28 @@ export default function LotteryEntrance() {
             // try to read the raffle entrance fee
             async function updateUI() {
                 const entranceFeeFromCall = (await getEntranceFee()).toString()
-                setEntranceFee(ethers.utils.formatUnits(entranceFeeFromCall, "ether"))
+                setEntranceFee(entranceFeeFromCall)
             }
             updateUI()
         }
     }, [isWeb3Enabled])
     return (
         <div>
-            Lottery Entrance button<div>Entrance Fee: {entranceFee} ETH</div>
+            Lottery Entrance button
+            {raffleAddress ? (
+                <div>
+                    <button
+                        onClick={async function () {
+                            await enterRaffle()
+                        }}
+                    >
+                        Enter Raffle
+                    </button>
+                    Entrance Fee: {ethers.utils.formatUnits(entranceFee, "ether")} ETH
+                </div>
+            ) : (
+                <div>No Raffle Address Detected</div>
+            )}
         </div>
     )
 }
